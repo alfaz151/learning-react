@@ -2,7 +2,6 @@ import ReactDom from 'react-dom/client';
 
 const header = <h1 className="header">Welcome to My App</h1>;
 
-// Create functional component the content should be about functinonal component, jsx, composition
 const ParagraphComponent = () => {
     return (
         <p className="description">
