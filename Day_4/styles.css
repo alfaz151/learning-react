@@ -1,0 +1,33 @@
+.main-header-bar {
+    width: 100%;
+    display: flex;
+    padding: 5px 10px; 
+}
+
+.header-bar-left {   
+    width: 50%;
+}
+
+.header-logo-text {
+    font-size: 10px;
+}
+
+.header-bar-right {
+    width: 50%;
+}
+
+.header-bar-right-list {
+    align-items: center;
+    height: 100%;
+}
+
+.header-bar-right-list > ul {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+    padding: 5px;
+}
+
+.header-bar-right-list > ul > li {
+    
+}
