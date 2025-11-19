@@ -22,3 +22,6 @@
 /TodoApp/dist/
 /TodoApp/.parcel-cache/
 
+/StopWatch/node_modules/
+/StopWatch/dist/
+/StopWatch/.parcel-cache/

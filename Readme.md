@@ -1,6 +1,6 @@
 # React Learning Journey - Quick Reference Guide
 
-A comprehensive summary of React concepts covered across 6 learning days and a TodoApp project.
+A comprehensive summary of React concepts covered across 6 learning days, TodoApp, and StopWatch projects.
 
 ---
 
@@ -12,6 +12,7 @@ A comprehensive summary of React concepts covered across 6 learning days and a T
 - [Day 5: Props & State Management](#day-5-props--state-management)
 - [Day 6: React Router](#day-6-react-router)
 - [TodoApp: Practical CRUD Operations](#todoapp-practical-crud-operations)
+- [StopWatch: Timer & useEffect Dependencies](#stopwatch-timer--useeffect-dependencies)
 - [Quick Reference Cheatsheet](#quick-reference-cheatsheet)
 
 ---
@@ -424,6 +425,93 @@ Always update state immutably. Use spread operator for adding, filter for removi
 
 ---
 
+## StopWatch: Timer & useEffect Dependencies
+
+### Core Concepts
+- **setInterval/clearInterval** - Timer management in React
+- **Functional State Updates** - Using callback form for state based on previous value
+- **useEffect with Dependencies** - Cascading state updates
+- **Module-level Variables** - Storing references outside component
+- **Cleanup Pattern** - Properly stopping intervals
+
+### Timer Management
+```javascript
+let timer;  // Module-level variable (outside component)
+
+const StopWatch = () => {
+    const [seconds, setSeconds] = useState(0);
+    const [milliseconds, setMilliseconds] = useState(0);
+
+    const startTimer = () => {
+        if (timer) return;  // Prevent multiple intervals
+
+        timer = setInterval(() => {
+            setMilliseconds((ms) => {
+                if (ms + 10 >= 1000) {
+                    setSeconds((sec) => sec + 1);
+                    return 0;
+                }
+                return ms + 10;
+            });
+        }, 10);
+    };
+
+    const stopTimer = () => {
+        if (timer) clearInterval(timer);
+        timer = null;
+    };
+
+    return (
+        <div>
+            <h1>{seconds}:{milliseconds}</h1>
+            <button onClick={startTimer}>Start</button>
+            <button onClick={stopTimer}>Stop</button>
+            <button onClick={() => {
+                stopTimer();
+                setSeconds(0);
+                setMilliseconds(0);
+            }}>Reset</button>
+        </div>
+    );
+};
+```
+
+### Functional State Updates
+```javascript
+// Using callback form - access previous state value
+setMilliseconds((prevMs) => prevMs + 10);
+
+// vs direct update (doesn't have access to latest state in intervals)
+setMilliseconds(milliseconds + 10);  // May use stale value!
+```
+
+### useEffect with Dependencies
+```javascript
+const [seconds, setSeconds] = useState(0);
+const [minutes, setMinutes] = useState(0);
+const [hours, setHours] = useState(0);
+
+// Runs when seconds changes
+useEffect(() => {
+    setMinutes(seconds / 60);
+}, [seconds]);
+
+// Runs when minutes changes
+useEffect(() => {
+    setHours(minutes / 60);
+}, [minutes]);
+```
+
+### Why Functional Updates Matter
+- **setInterval closure** - Callback captures initial state value
+- **Functional form** - Always receives the latest state
+- **Race conditions** - Prevents stale state issues in async operations
+
+### Key Takeaway
+Use functional state updates `setState(prev => newValue)` when new state depends on previous state, especially in intervals and async callbacks.
+
+---
+
 ## Quick Reference Cheatsheet
 
 ### Hooks Summary
@@ -493,7 +581,8 @@ project/
 | 4 | Structure | Composition, Lists, Keys |
 | 5 | Interactivity | Props, useState, Controlled inputs |
 | 6 | Navigation | React Router, useParams, useEffect |
-| App | Practice | CRUD operations, State management |
+| TodoApp | Practice | CRUD operations, State management |
+| StopWatch | Timers | setInterval, Functional updates, Dependencies |
 
 ---
 

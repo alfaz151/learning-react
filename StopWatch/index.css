@@ -1,0 +1,17 @@
+.timer-container {
+    display: flex;
+    justify-content: center;
+}
+
+.timer-container > h1 {
+    padding: 50px
+}
+
+.timer-button {
+    display: flex;
+    justify-content: center;
+}
+
+.timer-container > div {
+    padding: 50px
+}
