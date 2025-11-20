@@ -25,3 +25,7 @@
 /StopWatch/node_modules/
 /StopWatch/dist/
 /StopWatch/.parcel-cache/
+
+/Day_7/node_modules/
+/Day_7/dist/
+/Day_7/.parcel-cache/
