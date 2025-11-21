@@ -1,6 +1,6 @@
 # React Learning Journey - Quick Reference Guide
 
-A comprehensive summary of React concepts covered across 6 learning days, TodoApp, and StopWatch projects.
+A comprehensive summary of React concepts covered across 8 learning days, TodoApp, and StopWatch projects.
 
 ---
 
@@ -11,6 +11,8 @@ A comprehensive summary of React concepts covered across 6 learning days, TodoAp
 - [Day 4: Component Composition & Lists](#day-4-component-composition--lists)
 - [Day 5: Props & State Management](#day-5-props--state-management)
 - [Day 6: React Router](#day-6-react-router)
+- [Day 7: Class Components Introduction](#day-7-class-components-introduction)
+- [Day 8: Custom Hooks & Code Splitting](#day-8-custom-hooks--code-splitting)
 - [TodoApp: Practical CRUD Operations](#todoapp-practical-crud-operations)
 - [StopWatch: Timer & useEffect Dependencies](#stopwatch-timer--useeffect-dependencies)
 - [Quick Reference Cheatsheet](#quick-reference-cheatsheet)
@@ -352,6 +354,231 @@ React Router enables SPA navigation. useParams extracts URL data, useEffect hand
 
 ---
 
+## Day 7: Class Components Introduction
+
+### Core Concepts
+- **Class Components** - Object-oriented approach to React components
+- **Component Lifecycle** - Methods that run at different stages
+- **Wrapper Pattern** - Bridging hooks with class components
+- **this.state & this.setState()** - State management in classes
+
+### Class Component Syntax
+```javascript
+import { Component } from 'react';
+
+class PostCard extends Component {
+    constructor(props) {
+        super(props);  // Must call super to access this.props
+        this.state = {
+            postData: {}
+        };
+    }
+
+    render() {
+        return (
+            <div>
+                <h2>{this.state.postData?.title}</h2>
+                <p>{this.state.postData?.body}</p>
+            </div>
+        );
+    }
+}
+```
+
+### Lifecycle Methods
+```javascript
+class PostCard extends Component {
+    // Runs after component mounts
+    componentDidMount() {
+        const post = data.find(p => p.id === parseInt(this.props.id));
+        this.setState({ postData: post });
+    }
+
+    // Runs after every update
+    componentDidUpdate() {
+        console.log("Component re-rendered");
+    }
+
+    // Runs before component unmounts
+    componentWillUnmount() {
+        console.log("Cleanup before destroy");
+    }
+}
+```
+
+### Wrapper Pattern for Hooks
+```javascript
+// Class components can't use hooks directly
+import { useParams } from 'react-router-dom';
+import PostCardClassComp from './PostCardClassComp';
+
+// Wrapper extracts hook data and passes as props
+const PostCardWrapper = (props) => {
+    const { id } = useParams();
+    return <PostCardClassComp {...props} id={id} />;
+};
+```
+
+### Key Takeaway
+Class components use lifecycle methods instead of hooks. Wrapper components bridge hooks with class components when needed.
+
+---
+
+## Day 8: Custom Hooks & Code Splitting
+
+### Core Concepts
+- **Custom Hooks** - Reusable logic extraction
+- **lazy()** - Dynamic import for code splitting
+- **Suspense** - Fallback UI while lazy components load
+- **Hook Composition** - Building hooks from other hooks
+
+### Custom Hooks
+
+Custom hooks are functions that start with "use" and can call other hooks. They enable reusing stateful logic across components.
+
+### Creating a Custom Hook
+```javascript
+// usePosts.js - Custom hook for fetching post data
+import { useState, useEffect } from 'react';
+import { MOCK_JSON_DATA } from '../constant';
+
+const usePosts = (postId) => {
+    const [post, setPost] = useState({});
+
+    useEffect(() => {
+        const foundPost = MOCK_JSON_DATA.find(
+            (post) => post.id === parseInt(postId)
+        );
+        setPost(foundPost);
+    }, [postId]);
+
+    return post;
+};
+
+export default usePosts;
+```
+
+### Using Custom Hooks
+```javascript
+// PostCard.js - Component using custom hook
+import { useParams } from 'react-router-dom';
+import usePosts from './utils/usePosts';
+
+const PostCard = () => {
+    const { id } = useParams();
+    const post = usePosts(id);  // Custom hook usage
+
+    return (
+        <div>
+            <h2>{post?.title}</h2>
+            <p>{post?.body}</p>
+        </div>
+    );
+};
+```
+
+### Benefits of Custom Hooks
+- **Reusability** - Share logic across multiple components
+- **Separation of Concerns** - Extract complex logic from components
+- **Testability** - Test logic independently
+- **Cleaner Components** - Components focus on rendering, not logic
+
+### Custom Hook Examples
+```javascript
+// useLocalStorage - Persist state to localStorage
+const useLocalStorage = (key, initialValue) => {
+    const [value, setValue] = useState(() => {
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : initialValue;
+    });
+
+    useEffect(() => {
+        localStorage.setItem(key, JSON.stringify(value));
+    }, [key, value]);
+
+    return [value, setValue];
+};
+
+// Usage
+const [theme, setTheme] = useLocalStorage('theme', 'light');
+
+// useDebounce - Debounce a value
+const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedValue(value), delay);
+        return () => clearTimeout(timer);
+    }, [value, delay]);
+
+    return debouncedValue;
+};
+
+// Usage
+const debouncedSearch = useDebounce(searchTerm, 500);
+```
+
+### Custom Hook Rules
+1. **Name must start with "use"** - `useSomething()`
+2. **Can call other hooks** - useState, useEffect, etc.
+3. **Top-level calls only** - No conditionals, loops
+4. **Each call is isolated** - State not shared between components
+
+### Code Splitting with lazy() and Suspense
+```javascript
+import { lazy, Suspense } from 'react';
+
+// Dynamic import - component loaded only when needed
+const ErrorPage = lazy(() => import('./Error'));
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+
+const App = () => {
+    return (
+        <div>
+            <h1>My App</h1>
+
+            {/* Suspense provides fallback UI while loading */}
+            <Suspense fallback={<div>Loading...</div>}>
+                <HeavyComponent />
+            </Suspense>
+        </div>
+    );
+};
+
+// In router configuration
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <AppLayout />,
+        errorElement: <Suspense><ErrorPage /></Suspense>
+    }
+]);
+```
+
+### When to Use Custom Hooks
+- **Repeated logic** - Same stateful logic across multiple components
+- **Complex state** - Managing related state and effects together
+- **API integration** - Encapsulating fetch/data logic
+- **Form handling** - Input validation and submission
+- **Browser APIs** - localStorage, geolocation, media queries
+
+### When to Use lazy()
+- **Large components** - Charts, editors, dashboards
+- **Route-based splitting** - Load pages only when navigated to
+- **Conditional features** - Modals, dialogs loaded on demand
+- **Third-party libraries** - Heavy dependencies
+
+### Benefits of Code Splitting
+- **Smaller initial bundle** - Faster first page load
+- **On-demand loading** - Load code when needed
+- **Better caching** - Unchanged chunks stay cached
+- **Improved performance** - Especially for large apps
+
+### Key Takeaway
+Custom hooks enable reusing stateful logic across components by extracting and composing existing hooks. Use lazy() and Suspense for code splitting to improve performance.
+
+---
+
 ## TodoApp: Practical CRUD Operations
 
 ### Core Concepts
@@ -514,13 +741,16 @@ Use functional state updates `setState(prev => newValue)` when new state depends
 
 ## Quick Reference Cheatsheet
 
-### Hooks Summary
-| Hook | Purpose | Example |
-|------|---------|---------|
+### Hooks & APIs Summary
+| Hook/API | Purpose | Example |
+|----------|---------|---------|
 | `useState` | Local state | `const [value, setValue] = useState(initial)` |
 | `useEffect` | Side effects | `useEffect(() => { ... }, [deps])` |
 | `useParams` | URL params | `const { id } = useParams()` |
 | `useRouteError` | Route errors | `const error = useRouteError()` |
+| `Custom hooks` | Reusable logic | `const data = useCustomHook(param)` |
+| `lazy` | Code splitting | `const Comp = lazy(() => import('./Comp'))` |
+| `Suspense` | Lazy fallback | `<Suspense fallback={<Loading />}><Comp /></Suspense>` |
 
 ### Array Methods
 | Method | Purpose | Example |
@@ -551,6 +781,20 @@ Use functional state updates `setState(prev => newValue)` when new state depends
 
 // Event handling
 <button onClick={() => handleClick(param)}>Click</button>
+
+// Lazy loading
+const Component = lazy(() => import('./Component'));
+<Suspense fallback={<div>Loading...</div>}>
+  <Component />
+</Suspense>
+
+// Class component state
+this.setState({ key: value });  // Class component
+setValue(newValue);             // Functional component
+
+// Custom hooks
+const data = useCustomHook(param);
+const [value, setValue] = useLocalStorage('key', defaultValue);
 ```
 
 ### Project Structure (Recommended)
@@ -560,6 +804,9 @@ project/
 │   ├── components/
 │   │   ├── Header.js
 │   │   ├── Footer.js
+│   │   └── ...
+│   ├── utils/
+│   │   ├── useCustomHook.js
 │   │   └── ...
 │   ├── App.js
 │   └── index.js
@@ -581,6 +828,8 @@ project/
 | 4 | Structure | Composition, Lists, Keys |
 | 5 | Interactivity | Props, useState, Controlled inputs |
 | 6 | Navigation | React Router, useParams, useEffect |
+| 7 | Legacy Patterns | Class components, Lifecycle methods, Wrapper pattern |
+| 8 | Advanced Patterns | Custom hooks, lazy, Suspense, Code splitting |
 | TodoApp | Practice | CRUD operations, State management |
 | StopWatch | Timers | setInterval, Functional updates, Dependencies |
 
@@ -590,8 +839,10 @@ project/
 - [ ] useContext - Global state without prop drilling
 - [ ] useReducer - Complex state logic
 - [ ] useMemo/useCallback - Performance optimization
-- [ ] Custom Hooks - Reusable logic
+- [ ] useRef - Direct DOM access and persistent values
 - [ ] API Integration - fetch/axios with useEffect
+- [ ] Error Boundaries - Catch React errors gracefully
 - [ ] Form Libraries - React Hook Form, Formik
-- [ ] State Management - Redux, Zustand
-- [ ] Testing - Jest, React Testing Library
+- [ ] State Management - Redux, Zustand, Jotai
+- [ ] Testing - Jest, React Testing Library, Vitest
+- [ ] TypeScript with React - Type-safe components
